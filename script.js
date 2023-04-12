@@ -3,6 +3,8 @@ const itemInput=document.querySelector('#item-input');
 const itemList=document.querySelector('#item-list');
 const itemClear=document.querySelector('#clear');
 const itemFilter=document.querySelector('#filter');
+const formBtn=itemForm.querySelector('button');
+let isEditMode=false;
 
 function displayItems(){
   const itemFromStorage=getItemFromStorage();
@@ -20,19 +22,44 @@ function onAddItemSubmit(e){
     alert('Please Add an Item');
     return;
   }
+  // Checking If edit mode
+  if(isEditMode){
+    const itemToEdit=document.querySelector('.edit-mode');
+    itemToEdit.classList.remove='edit-mode';
+    deleteFromStorage(itemToEdit.textContent);
+    itemToEdit.remove();
+    isEditMode=false;
+  }
+  else{
+    // Checking if already exist
+    if(checkIfItemExists(newItem)){
+      alert('Item Already Exist')
+      checkUI();
+      return;
+    }
+  }
+  // Add Item To DOM
   addItemToDOM(newItem);
+
+  // Add Item TO Local Storage
   addItemToStorage(newItem);
+
   itemInput.value='';
   checkUI();
 }
 function addItemToDOM(item){
+
   const li=document.createElement('li');
   li.appendChild(document.createTextNode(item));
-  itemList.appendChild(li);
+
+
   const button=createButton('remove-item btn-link text-red');
+  li.appendChild(button);
+
   const icon=createIcon('fa-solid fa-xmark');
   button.appendChild(icon);
-  li.appendChild(button);
+  //Add li to DOM
+  itemList.appendChild(li);
 }
 function createButton(cl){
   const btn=document.createElement('button');
@@ -62,13 +89,22 @@ else
 
   return itemFromStorage;
 }
+// ! Check if item Exist
+function checkIfItemExists(item){
+  const itemFromStorage=getItemFromStorage();
+  return itemFromStorage.includes(item);
+}
+
 // ! Remove Element
-function removeOnClick(e){
+function onClickItem(e){
   // if(e.target.tagName==='I'){
     //   e.target.parentElement.parentElement.remove();
     // }
     if(e.target.parentElement.classList.contains('remove-item')){
       deleteItem(e.target.parentElement.parentElement);
+    }
+    else{
+      setItemToEdit(e.target);
     }
   }
 function deleteItem(item){
@@ -88,6 +124,18 @@ function deleteFromStorage(item){
       
       localStorage.setItem('items',JSON.stringify(itemFromStorage));
     }
+    // * ITEM EDIT
+function setItemToEdit(item){
+  isEditMode=true;
+  itemList.querySelectorAll('li').forEach((i)=>{
+    i.classList.remove('edit-mode')
+  })
+  item.classList.add('edit-mode');
+  formBtn.innerHTML=`<i class="fa-solid fa-pen"></i>  Update Item`;
+  formBtn.style.backgroundColor='#228B22';
+  itemInput.value=item.textContent;
+
+}
 // !Clear List
 function clearList(){
   // itemList.remove();
@@ -104,6 +152,7 @@ function clearList(){
 }
 // ! CHECK UI
 function checkUI(){
+  itemInput.value='';
   const items=itemList.querySelectorAll('li');
   if(items.length===0)
   {
@@ -115,6 +164,9 @@ function checkUI(){
     itemClear.style.display='block';
     itemFilter.style.display='block';
   }
+  formBtn.innerHTML='<i class="fa-solid fa-plus"></i> Add Items';
+  formBtn.style.backgroundColor='black';
+  isEditMode=false;
 }
 // ! Filter List
 function filterList(e){
@@ -139,7 +191,7 @@ function filterList(e){
       {
         i.style.display='none';
       }
-      
+
     })
 }
 
@@ -147,7 +199,7 @@ function filterList(e){
 function init(){
   // Event Listener
 itemForm.addEventListener('submit',onAddItemSubmit);
-itemList.addEventListener('click',removeOnClick);
+itemList.addEventListener('click',onClickItem);
 itemClear.addEventListener('click',clearList);
 itemFilter.addEventListener('input',filterList);
 document.addEventListener('DOMContentLoaded',displayItems);

@@ -103,7 +103,7 @@ function onClickItem(e){
     if(e.target.parentElement.classList.contains('remove-item')){
       deleteItem(e.target.parentElement.parentElement);
     }
-    else{
+    else if(e.target.parentElement.classList.contains('items')){
       setItemToEdit(e.target);
     }
   }
